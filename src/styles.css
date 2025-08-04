@@ -9,6 +9,8 @@ body {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: #ffffff;
     height: 100vh;
+    height: 100dvh;
+    /* Use dynamic viewport height for mobile */
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
@@ -19,6 +21,10 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
+    /* Use dynamic viewport height for mobile */
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .header {
@@ -26,22 +32,26 @@ body {
     padding: 10px 20px;
     border-bottom: 1px solid #333;
     backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
 }
 
 .header h1 {
     font-size: 1.2rem;
     font-weight: 600;
-    margin-bottom: 5px;
     text-align: center;
+    color: #4CAF50;
+    margin-bottom: 8px;
 }
 
 .status-bar {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
+    gap: 10px;
 }
 
 .status-indicator {
+    font-size: 0.75rem;
     padding: 2px 8px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.1);
@@ -54,15 +64,21 @@ body {
     flex-direction: column;
     padding: 20px;
     gap: 20px;
+    min-height: 0;
+    /* Allow flex item to shrink */
+    overflow: hidden;
 }
 
 .control-panel {
     display: flex;
     gap: 15px;
     justify-content: center;
+    flex-shrink: 0;
+    /* Prevent control panel from shrinking */
 }
 
-.mark-button, .reset-button {
+.mark-button,
+.reset-button {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -99,14 +115,11 @@ body {
     box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
 }
 
-.mark-button:disabled, .reset-button:disabled {
+.mark-button:disabled,
+.reset-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
-}
-
-.button-icon {
-    font-size: 1.2rem;
 }
 
 .display-container {
@@ -114,6 +127,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    min-height: 0;
+    /* Allow flex item to shrink */
 }
 
 .hover-canvas {
@@ -121,7 +136,8 @@ body {
     border: 2px solid #333;
     border-radius: 15px;
     background: #000;
-    min-height: 300px;
+    min-height: 200px;
+    /* Reduced minimum height for mobile */
     touch-action: none;
 }
 
@@ -132,6 +148,8 @@ body {
     border-radius: 15px;
     padding: 15px;
     backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    /* Prevent coordinates from shrinking */
 }
 
 .coord-item {
@@ -191,13 +209,14 @@ body {
     color: #ccc;
 }
 
-.modal-buttons {
+.modal-actions {
     display: flex;
     gap: 15px;
     justify-content: center;
 }
 
-.primary-button, .secondary-button {
+.primary-button,
+.secondary-button {
     padding: 12px 25px;
     border: none;
     border-radius: 25px;
@@ -245,28 +264,39 @@ body {
     .header {
         padding: 8px 15px;
     }
-    
+
     .header h1 {
         font-size: 1rem;
     }
-    
+
     .main-content {
         padding: 15px;
-        gap: 15px;
+        gap: 12px;
     }
-    
+
     .control-panel {
         flex-direction: column;
         gap: 10px;
     }
-    
-    .mark-button, .reset-button {
+
+    .mark-button,
+    .reset-button {
         width: 100%;
         min-width: auto;
+        padding: 10px 15px;
     }
-    
+
+    .hover-canvas {
+        min-height: 150px;
+        /* Further reduced for mobile */
+    }
+
     .coordinates-display {
-        padding: 10px;
+        padding: 12px;
+    }
+
+    .coord-value {
+        font-size: 1.1rem;
     }
 }
 
@@ -274,13 +304,42 @@ body {
     .header h1 {
         font-size: 0.9rem;
     }
-    
+
     .main-content {
         padding: 10px;
-        gap: 10px;
+        gap: 8px;
     }
-    
+
     .control-panel {
         flex-direction: row;
+    }
+
+    .hover-canvas {
+        min-height: 120px;
+        /* Very compact for landscape */
+    }
+
+    .coordinates-display {
+        padding: 8px;
+    }
+}
+
+/* Ensure coordinates are always visible on very small screens */
+@media (max-height: 600px) {
+    .main-content {
+        gap: 10px;
+    }
+
+    .hover-canvas {
+        min-height: 120px;
+    }
+
+    .coordinates-display {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .coord-value {
+        font-size: 1rem;
     }
 }
