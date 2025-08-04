@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <title>Helicopter Hover Assistant</title>
+        <meta name="description" content="GPS-based helicopter hover assistance application">
+        <meta name="theme-color" content="#00ff00">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="HoverAssist">
+
+        <!-- PWA Manifest -->
+        <link rel="manifest" href="./manifest.json">
+
+        <!-- PWA Icons -->
+        <link rel="apple-touch-icon"
+            href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI2MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSI0MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSIyMCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNCIgZmlsbD0iIzAwZmYwMCIvPgo8L3N2Zz4K">
+        <link rel="icon" type="image/svg+xml"
+            href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI2MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSI0MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSIyMCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNCIgZmlsbD0iIzAwZmYwMCIvPgo8L3N2Zz4K">
+    </head>
+
+    <body>
+        <div id="app">
+            <header class="header">
+                <h1>Helicopter Hover Assistant</h1>
+                <div class="status-bar">
+                    <span id="gps-status" class="status-indicator">GPS: Disconnected</span>
+                    <span id="accuracy-status" class="status-indicator">Accuracy: --</span>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div class="control-panel">
+                    <button id="mark-button" class="mark-button" disabled>
+                        <span class="button-icon">📍</span>
+                        <span class="button-text">Mark Position</span>
+                    </button>
+                    <button id="reset-button" class="reset-button" disabled>
+                        <span class="button-icon">🔄</span>
+                        <span class="button-text">Reset</span>
+                    </button>
+                </div>
+
+                <div class="display-container">
+                    <canvas id="hover-display" class="hover-canvas"></canvas>
+                    <div class="coordinates-display">
+                        <div class="coord-item">
+                            <span class="coord-label">Distance:</span>
+                            <span id="distance-value" class="coord-value">--</span>
+                        </div>
+                        <div class="coord-item">
+                            <span class="coord-label">Bearing:</span>
+                            <span id="bearing-value" class="coord-value">--</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <div id="permission-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Location Permission Required</h2>
+                    <p>This app needs access to your device's location to provide hover assistance.</p>
+                    <div class="modal-buttons">
+                        <button id="grant-permission" class="primary-button">Grant Permission</button>
+                        <button id="deny-permission" class="secondary-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>Error</h2>
+                    <p id="error-message"></p>
+                    <div class="modal-buttons">
+                        <button id="close-error" class="primary-button">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>

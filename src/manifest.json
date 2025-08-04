@@ -1,0 +1,41 @@
+{
+    "name": "Helicopter Hover Assistant",
+    "short_name": "HoverAssist",
+    "description": "GPS-based helicopter hover assistance application",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#00ff00",
+    "orientation": "portrait",
+    "scope": "./",
+    "icons": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSI5NiIgY3k9Ijk2IiByPSI2MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSI0MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSI5NiIgY3k9Ijk2IiByPSIyMCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KPGNpcmNsZSBjeD0iOTYiIGN5PSI5NiIgcj0iNCIgZmlsbD0iIzAwZmYwMCIvPgo8L3N2Zz4K",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iOCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjE2MCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjYiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjEyMCIgc3Ryb2tlPSIjMDBmZjAwIiBzdHJva2Utd2lkdGg9IjYiIGZpbGw9Im5vbmUiLz4KPGNPCMZSIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjQwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjEwIiBmaWxsPSIjMDBmZjAwIi8+Cjwvc3ZnPgo=",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "categories": [
+        "navigation",
+        "utilities"
+    ],
+    "screenshots": [
+        {
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iNTY4IiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9IjE2MCIgY3k9IjI4NCIgcj0iMTAwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjYwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjQwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjIwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjQiIGZpbGw9IiMwMGZmMDAiLz4KPC9zdmc+Cg==",
+            "sizes": "320x568",
+            "type": "image/svg+xml",
+            "form_factor": "narrow"
+        }
+    ],
+    "permissions": [
+        "geolocation"
+    ],
+    "features": [
+        "cross-origin-isolated"
+    ]
+}

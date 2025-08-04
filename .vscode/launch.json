@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build & Run",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build-and-open",
+            "program": "${workspaceFolder}/package.json",
+            "console": "integratedTerminal"
+        }
+    ]
+}
