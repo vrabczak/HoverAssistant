@@ -237,9 +237,9 @@ For issues and questions:
 
 The application is deployed on GitHub Pages for easy access and testing.
 
-### Live Demo
+### 🚀 Live Demo
 
-Access the app at: https://YOUR-USERNAME.github.io/helicopter-hover-assistant/helicopter-hover-assistant.html
+**Access the app:** [https://vrabczak.github.io/HoverAssistant/helicopter-hover-assistant.html](https://vrabczak.github.io/HoverAssistant/helicopter-hover-assistant.html)
 
 ### Mobile Installation
 
