@@ -28,7 +28,7 @@
             "args": [
                 "/c",
                 "start",
-                "${workspaceFolder}\\dist\\helicopter-hover-assistant.html"
+                "${workspaceFolder}\\dist\\index.html"
             ],
             "presentation": {
                 "echo": true,
