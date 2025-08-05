@@ -8,13 +8,14 @@ export class HoverAssistant {
         this.displayManager = null;
         this.uiManager = null;
         this.settingsManager = null;
-        
+        this.themeManager = null;
+
         this.markedPosition = null;
         this.currentPosition = null;
         this.isTracking = false;
-        
+
         this.eventListeners = new Map();
-        
+
         this.init();
     }
 
@@ -28,20 +29,22 @@ export class HoverAssistant {
             const { DisplayManager } = await import('./DisplayManager.js');
             const { UIManager } = await import('./UIManager.js');
             const { SettingsManager } = await import('./SettingsManager.js');
+            const { ThemeManager } = await import('./ThemeManager.js');
 
             // Initialize managers
             this.settingsManager = new SettingsManager();
+            this.themeManager = new ThemeManager();
             this.gpsManager = new GPSManager(this.settingsManager.getGPSSettings());
             this.displayManager = new DisplayManager();
             this.uiManager = new UIManager();
 
             // Setup event listeners
             this.setupEventListeners();
-            
+
             // Initialize UI and Display
             await this.uiManager.init();
             await this.displayManager.init();
-            
+
             console.log('HoverAssistant initialized successfully');
         } catch (error) {
             console.error('Failed to initialize HoverAssistant:', error);
@@ -57,15 +60,15 @@ export class HoverAssistant {
         this.gpsManager.addEventListener('connected', (event) => {
             this.onGPSConnected(event.detail);
         });
-        
+
         this.gpsManager.addEventListener('disconnected', () => {
             this.onGPSDisconnected();
         });
-        
+
         this.gpsManager.addEventListener('position', (event) => {
             this.onPositionUpdate(event.detail);
         });
-        
+
         this.gpsManager.addEventListener('error', (event) => {
             this.onGPSError(event.detail);
         });
@@ -74,15 +77,15 @@ export class HoverAssistant {
         this.uiManager.addEventListener('ui:mark', () => {
             this.onMarkPosition();
         });
-        
+
         this.uiManager.addEventListener('ui:reset', () => {
             this.onReset();
         });
-        
+
         this.uiManager.addEventListener('ui:permission-granted', () => {
             this.onPermissionGranted();
         });
-        
+
         this.uiManager.addEventListener('ui:permission-denied', () => {
             this.onPermissionDenied();
         });
@@ -90,6 +93,11 @@ export class HoverAssistant {
         // Settings Manager events
         this.settingsManager.addEventListener('settings:changed', (event) => {
             this.onSettingsChanged(event.detail);
+        });
+
+        // Theme Manager events
+        this.themeManager.addEventListener('themeChanged', (data) => {
+            this.onThemeChanged(data);
         });
     }
 
@@ -170,16 +178,16 @@ export class HoverAssistant {
      */
     onPositionUpdate(position) {
         this.currentPosition = position;
-        
+
         if (this.markedPosition) {
             const distance = this.calculateDistance(this.markedPosition, position);
             const bearing = this.calculateBearing(this.markedPosition, position);
-            
+
             // Update display
             this.displayManager.updatePosition(this.markedPosition, position);
             this.uiManager.updateCoordinates(distance, bearing);
         }
-        
+
         this.uiManager.updateGPSStatus('connected', position.accuracy);
     }
 
@@ -236,8 +244,25 @@ export class HoverAssistant {
      */
     onSettingsChanged(settings) {
         console.log('Settings changed:', settings);
-        if (this.gpsManager) {
+
+        if (settings.gps && this.gpsManager) {
             this.gpsManager.updateSettings(settings.gps);
+        }
+
+        if (settings.display && this.displayManager) {
+            this.displayManager.updateSettings(settings.display);
+        }
+    }
+
+    /**
+     * Handle theme changes
+     */
+    onThemeChanged(data) {
+        console.log('Theme changed from', data.previousTheme, 'to', data.newTheme);
+
+        // Update display manager colors
+        if (this.displayManager) {
+            this.displayManager.onThemeChange();
         }
     }
 
@@ -252,8 +277,8 @@ export class HoverAssistant {
         const deltaLonRad = (pos2.longitude - pos1.longitude) * Math.PI / 180;
 
         const a = Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-                  Math.cos(lat1Rad) * Math.cos(lat2Rad) *
-                  Math.sin(deltaLonRad / 2) * Math.sin(deltaLonRad / 2);
+            Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+            Math.sin(deltaLonRad / 2) * Math.sin(deltaLonRad / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return R * c;
@@ -269,7 +294,7 @@ export class HoverAssistant {
 
         const y = Math.sin(deltaLonRad) * Math.cos(lat2Rad);
         const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-                  Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLonRad);
+            Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLonRad);
 
         let bearing = Math.atan2(y, x) * 180 / Math.PI;
         return (bearing + 360) % 360;
@@ -284,20 +309,32 @@ export class HoverAssistant {
     }
 
     /**
-     * Cleanup resources
+     * Cleanup application resources
      */
     destroy() {
         this.stopTracking();
-        this.eventListeners.clear();
-        
+
+        if (this.gpsManager) {
+            this.gpsManager.destroy();
+        }
+
         if (this.displayManager) {
             this.displayManager.destroy();
         }
-        
+
         if (this.uiManager) {
             this.uiManager.destroy();
         }
-        
+
+        if (this.settingsManager) {
+            this.settingsManager.destroy();
+        }
+
+        if (this.themeManager) {
+            this.themeManager.destroy();
+        }
+
+        this.eventListeners.clear();
         console.log('HoverAssistant destroyed');
     }
 }

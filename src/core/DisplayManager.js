@@ -7,8 +7,8 @@ export class DisplayManager {
         this.ctx = null;
         this.markedPosition = null;
         this.currentPosition = null;
-        
-        // Display settings
+
+        // Display settings - will be updated based on theme
         this.settings = {
             gridSize: 5, // 5 meters
             gridScale: 1, // 1 meter per unit
@@ -21,7 +21,7 @@ export class DisplayManager {
             centerColor: '#FFF',
             backgroundColor: '#000'
         };
-        
+
         this.animationId = null;
         this.isInitialized = false;
         this.pixelsPerMeter = 50; // Scale factor for display
@@ -39,8 +39,9 @@ export class DisplayManager {
 
             this.ctx = this.canvas.getContext('2d');
             this.setupCanvas();
+            this.updateThemeColors(); // Set initial theme colors
             this.startAnimation();
-            
+
             this.isInitialized = true;
             console.log('DisplayManager initialized');
         } catch (error) {
@@ -50,25 +51,59 @@ export class DisplayManager {
     }
 
     /**
+     * Update colors based on current theme
+     */
+    updateThemeColors() {
+        const isLightTheme = document.documentElement.classList.contains('light-theme');
+
+        if (isLightTheme) {
+            // Light theme colors for day operations
+            this.settings.backgroundColor = '#ffffff';
+            this.settings.gridColor = '#ddd';
+            this.settings.circleColor = '#2E7D32';
+            this.settings.centerColor = '#333';
+            this.settings.dotColor = '#d32f2f';
+        } else {
+            // Dark theme colors for night operations
+            this.settings.backgroundColor = '#000';
+            this.settings.gridColor = '#333';
+            this.settings.circleColor = '#4CAF50';
+            this.settings.centerColor = '#FFF';
+            this.settings.dotColor = '#FF5722';
+        }
+    }
+
+    /**
+     * Handle theme change - call this when theme switches
+     */
+    onThemeChange() {
+        this.updateThemeColors();
+        // Redraw immediately to show new colors
+        if (this.isInitialized) {
+            this.draw();
+        }
+    }
+
+    /**
      * Setup canvas dimensions and properties
      */
     setupCanvas() {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
-        
+
         // Set canvas size to match container
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
-        
+
         // Calculate pixels per meter based on canvas size
         const minDimension = Math.min(this.canvas.width, this.canvas.height);
         this.pixelsPerMeter = (minDimension * 0.8) / (this.settings.gridSize * 2);
-        
+
         // Setup canvas properties
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
-        
+
         // Handle resize
         window.addEventListener('resize', this.handleResize.bind(this));
     }
@@ -109,6 +144,9 @@ export class DisplayManager {
     draw() {
         if (!this.ctx) return;
 
+        // Update theme colors on each draw to ensure consistency
+        this.updateThemeColors();
+
         // Clear canvas
         this.ctx.fillStyle = this.settings.backgroundColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -119,13 +157,13 @@ export class DisplayManager {
         if (this.markedPosition) {
             // Draw grid
             this.drawGrid(centerX, centerY);
-            
+
             // Draw circles
             this.drawCircles(centerX, centerY);
-            
+
             // Draw center point
             this.drawCenterPoint(centerX, centerY);
-            
+
             // Draw current position dot
             if (this.currentPosition) {
                 this.drawPositionDot(centerX, centerY);
@@ -178,11 +216,11 @@ export class DisplayManager {
 
         for (let i = 1; i <= this.settings.circleCount; i++) {
             const radius = i * this.settings.circleScale * this.pixelsPerMeter / 2; // diameter to radius
-            
+
             this.ctx.beginPath();
             this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
             this.ctx.stroke();
-            
+
             // Draw circle labels
             this.ctx.fillStyle = this.settings.circleColor;
             this.ctx.font = '12px Arial';
@@ -201,7 +239,7 @@ export class DisplayManager {
         this.ctx.beginPath();
         this.ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
         this.ctx.fill();
-        
+
         // Draw crosshairs
         this.ctx.strokeStyle = this.settings.centerColor;
         this.ctx.lineWidth = 2;
@@ -222,22 +260,22 @@ export class DisplayManager {
         // Calculate offset from marked position
         const deltaLat = this.currentPosition.latitude - this.markedPosition.latitude;
         const deltaLon = this.currentPosition.longitude - this.markedPosition.longitude;
-        
+
         // Convert to meters (approximate)
         const metersPerDegreeLat = 111320;
         const metersPerDegreeLon = 111320 * Math.cos(this.markedPosition.latitude * Math.PI / 180);
-        
+
         const offsetX = deltaLon * metersPerDegreeLon;
         const offsetY = -deltaLat * metersPerDegreeLat; // Negative because canvas Y increases downward
-        
+
         // Convert to pixels
         const pixelX = centerX + (offsetX * this.pixelsPerMeter);
         const pixelY = centerY + (offsetY * this.pixelsPerMeter);
-        
+
         // Draw position dot with pulsing effect
         const time = Date.now() * 0.003;
         const pulseSize = this.settings.dotSize + Math.sin(time) * 2;
-        
+
         // Draw outer glow
         this.ctx.shadowColor = this.settings.dotColor;
         this.ctx.shadowBlur = 15;
@@ -245,10 +283,10 @@ export class DisplayManager {
         this.ctx.beginPath();
         this.ctx.arc(pixelX, pixelY, pulseSize, 0, 2 * Math.PI);
         this.ctx.fill();
-        
+
         // Reset shadow
         this.ctx.shadowBlur = 0;
-        
+
         // Draw inner dot
         this.ctx.fillStyle = '#FFF';
         this.ctx.beginPath();
@@ -319,7 +357,7 @@ export class DisplayManager {
     screenToMeters(screenX, screenY) {
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
-        
+
         return {
             x: (screenX - centerX) / this.pixelsPerMeter,
             y: (centerY - screenY) / this.pixelsPerMeter // Flip Y axis
@@ -332,7 +370,7 @@ export class DisplayManager {
     metersToScreen(meterX, meterY) {
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
-        
+
         return {
             x: centerX + (meterX * this.pixelsPerMeter),
             y: centerY - (meterY * this.pixelsPerMeter) // Flip Y axis
@@ -344,15 +382,15 @@ export class DisplayManager {
      */
     destroy() {
         this.stopAnimation();
-        
+
         if (this.canvas) {
             window.removeEventListener('resize', this.handleResize.bind(this));
         }
-        
+
         this.canvas = null;
         this.ctx = null;
         this.isInitialized = false;
-        
+
         console.log('DisplayManager destroyed');
     }
 }
