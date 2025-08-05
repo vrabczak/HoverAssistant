@@ -78,10 +78,6 @@ export class HoverAssistant {
             this.onMarkPosition();
         });
 
-        this.uiManager.addEventListener('ui:reset', () => {
-            this.onReset();
-        });
-
         this.uiManager.addEventListener('ui:permission-granted', () => {
             this.onPermissionGranted();
         });
@@ -207,20 +203,8 @@ export class HoverAssistant {
         if (this.currentPosition) {
             this.markedPosition = { ...this.currentPosition };
             this.displayManager.setMarkedPosition(this.markedPosition);
-            this.uiManager.enableResetButton();
             console.log('Position marked:', this.markedPosition);
         }
-    }
-
-    /**
-     * Handle reset
-     */
-    onReset() {
-        this.markedPosition = null;
-        this.displayManager.reset();
-        this.uiManager.resetCoordinates();
-        this.uiManager.disableResetButton();
-        console.log('Position reset');
     }
 
     /**

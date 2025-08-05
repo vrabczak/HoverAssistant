@@ -287,25 +287,27 @@ body {
     border-color: var(--border-primary);
 }
 
-/* Theme Toggle Button */
+/* Theme Toggle Button - Now in Control Panel */
 .theme-toggle {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 16px;
+    min-width: 140px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .theme-toggle:hover {
-    background: var(--bg-tertiary);
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px var(--shadow-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
 }
 
 .theme-toggle:active {
@@ -314,6 +316,7 @@ body {
 
 .theme-icon {
     transition: transform 0.3s ease;
+    font-size: 1.2rem;
 }
 
 .light-theme .theme-icon {
@@ -364,14 +367,6 @@ body {
         text-align: center;
     }
 
-    .theme-toggle {
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
-        flex-shrink: 0;
-        margin-left: auto;
-    }
-
     .main-content {
         padding: 15px;
         gap: 12px;
@@ -415,12 +410,6 @@ body {
     .status-indicator {
         font-size: 0.65rem;
         padding: 1px 4px;
-    }
-
-    .theme-toggle {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
     }
 
     .main-content {
@@ -473,10 +462,5 @@ body {
     .status-indicator {
         flex: none;
         width: 100%;
-    }
-
-    .theme-toggle {
-        align-self: center;
-        margin: 0;
     }
 }

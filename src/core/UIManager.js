@@ -16,7 +16,7 @@ export class UIManager {
             this.cacheElements();
             this.setupEventListeners();
             this.showPermissionModal();
-            
+
             this.isInitialized = true;
             console.log('UIManager initialized');
         } catch (error) {
@@ -32,7 +32,6 @@ export class UIManager {
         this.elements = {
             // Buttons
             markButton: document.getElementById('mark-button'),
-            resetButton: document.getElementById('reset-button'),
             grantPermissionButton: document.getElementById('grant-permission'),
             denyPermissionButton: document.getElementById('deny-permission'),
             closeErrorButton: document.getElementById('close-error'),
@@ -66,11 +65,6 @@ export class UIManager {
         // Mark button
         this.elements.markButton.addEventListener('click', () => {
             this.emit('ui:mark');
-        });
-
-        // Reset button
-        this.elements.resetButton.addEventListener('click', () => {
-            this.emit('ui:reset');
         });
 
         // Permission modal buttons
@@ -173,20 +167,6 @@ export class UIManager {
     }
 
     /**
-     * Enable reset button
-     */
-    enableResetButton() {
-        this.elements.resetButton.disabled = false;
-    }
-
-    /**
-     * Disable reset button
-     */
-    disableResetButton() {
-        this.elements.resetButton.disabled = true;
-    }
-
-    /**
      * Show permission modal
      */
     showPermissionModal() {
@@ -206,15 +186,15 @@ export class UIManager {
     showError(title, message) {
         const modal = this.elements.errorModal;
         const messageElement = this.elements.errorMessage;
-        
+
         // Update modal content
         const titleElement = modal.querySelector('h2');
         if (titleElement) {
             titleElement.textContent = title;
         }
-        
+
         messageElement.textContent = message;
-        
+
         // Show modal
         modal.classList.remove('hidden');
     }
@@ -333,7 +313,7 @@ export class UIManager {
         this.elements = {};
         this.eventTarget = null;
         this.isInitialized = false;
-        
+
         console.log('UIManager destroyed');
     }
 }
