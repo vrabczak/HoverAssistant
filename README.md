@@ -239,7 +239,7 @@ The application is deployed on GitHub Pages for easy access and testing.
 
 ### 🚀 Live Demo
 
-**Access the app:** [https://vrabczak.github.io/HoverAssistant/helicopter-hover-assistant.html](https://vrabczak.github.io/HoverAssistant/helicopter-hover-assistant.html)
+**Access the app:** [https://vrabczak.github.io/HoverAssistant](https://vrabczak.github.io/HoverAssistant)
 
 ### Mobile Installation
 
