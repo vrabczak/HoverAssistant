@@ -19,12 +19,29 @@ export class DisplayManager {
             circleColor: '#4CAF50',
             dotColor: '#FF5722',
             centerColor: '#FFF',
-            backgroundColor: '#000'
+            backgroundColor: '#000',
+            compassColor: '#4CAF50',
+            headingColor: '#FF9800',
+            labelColor: '#FFF'
         };
 
         this.animationId = null;
         this.isInitialized = false;
         this.pixelsPerMeter = 50; // Scale factor for display
+
+        // Heading selection properties
+        this.selectedHeading = 0; // Current selected heading in degrees (0 = North)
+        this.isDragging = false;
+        this.compassRadius = 0; // Will be calculated based on canvas size
+        this.compassRingWidth = 30;
+
+        // Bind event handlers
+        this.handleMouseDown = this.handleMouseDown.bind(this);
+        this.handleMouseMove = this.handleMouseMove.bind(this);
+        this.handleMouseUp = this.handleMouseUp.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
     }
 
     /**
@@ -106,6 +123,14 @@ export class DisplayManager {
 
         // Handle resize
         window.addEventListener('resize', this.handleResize.bind(this));
+
+        // Add event listeners for heading selection
+        this.canvas.addEventListener('mousedown', this.handleMouseDown);
+        this.canvas.addEventListener('mousemove', this.handleMouseMove);
+        this.canvas.addEventListener('mouseup', this.handleMouseUp);
+        this.canvas.addEventListener('touchstart', this.handleTouchStart);
+        this.canvas.addEventListener('touchmove', this.handleTouchMove);
+        this.canvas.addEventListener('touchend', this.handleTouchEnd);
     }
 
     /**
@@ -168,6 +193,9 @@ export class DisplayManager {
             if (this.currentPosition) {
                 this.drawPositionDot(centerX, centerY);
             }
+
+            // Draw compass ring
+            this.drawCompassRing(centerX, centerY);
         } else {
             // Draw instructions when no position is marked
             this.drawInstructions();
@@ -306,6 +334,120 @@ export class DisplayManager {
             this.canvas.width / 2,
             this.canvas.height / 2
         );
+    }
+
+    /**
+     * Draw compass ring
+     */
+    drawCompassRing(centerX, centerY) {
+        this.ctx.strokeStyle = this.settings.compassColor;
+        this.ctx.lineWidth = this.compassRingWidth;
+        this.ctx.beginPath();
+        this.ctx.arc(centerX, centerY, this.compassRadius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+
+        // Draw N/S/E/W labels
+        this.ctx.fillStyle = this.settings.labelColor;
+        this.ctx.font = '14px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText('N', centerX, centerY - this.compassRadius - 10);
+        this.ctx.fillText('S', centerX, centerY + this.compassRadius + 20);
+        this.ctx.fillText('E', centerX + this.compassRadius + 10, centerY);
+        this.ctx.fillText('W', centerX - this.compassRadius - 20, centerY);
+
+        // Draw current heading
+        this.ctx.fillStyle = this.settings.headingColor;
+        this.ctx.font = '18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(`${this.selectedHeading}°`, centerX, centerY + this.compassRadius + 40);
+    }
+
+    /**
+     * Handle mouse down event
+     */
+    handleMouseDown(event) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+        if (distance <= this.compassRadius + this.compassRingWidth / 2) {
+            this.isDragging = true;
+        }
+    }
+
+    /**
+     * Handle mouse move event
+     */
+    handleMouseMove(event) {
+        if (!this.isDragging) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
+
+        this.selectedHeading = (angle + 360) % 360;
+    }
+
+    /**
+     * Handle mouse up event
+     */
+    handleMouseUp() {
+        this.isDragging = false;
+    }
+
+    /**
+     * Handle touch start event
+     */
+    handleTouchStart(event) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.touches[0].clientX - rect.left;
+        const y = event.touches[0].clientY - rect.top;
+
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+        if (distance <= this.compassRadius + this.compassRingWidth / 2) {
+            this.isDragging = true;
+        }
+    }
+
+    /**
+     * Handle touch move event
+     */
+    handleTouchMove(event) {
+        if (!this.isDragging) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.touches[0].clientX - rect.left;
+        const y = event.touches[0].clientY - rect.top;
+
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
+
+        this.selectedHeading = (angle + 360) % 360;
+    }
+
+    /**
+     * Handle touch end event
+     */
+    handleTouchEnd() {
+        this.isDragging = false;
     }
 
     /**
