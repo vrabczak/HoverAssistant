@@ -1,6 +1,8 @@
 /**
  * DisplayManager - Handles canvas-based visualization of grid, circles, and position
  */
+import { CompassController } from './CompassController.js';
+
 export class DisplayManager {
     constructor() {
         this.canvas = null;
@@ -31,17 +33,8 @@ export class DisplayManager {
 
         // Heading selection properties
         this.selectedHeading = 0; // Current selected heading in degrees (0 = North)
-        this.isDragging = false;
         this.compassRadius = 0; // Will be calculated based on canvas size
-        this.compassRingWidth = 30;
-
-        // Bind event handlers
-        this.handleMouseDown = this.handleMouseDown.bind(this);
-        this.handleMouseMove = this.handleMouseMove.bind(this);
-        this.handleMouseUp = this.handleMouseUp.bind(this);
-        this.handleTouchStart = this.handleTouchStart.bind(this);
-        this.handleTouchMove = this.handleTouchMove.bind(this);
-        this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        this.compassController = null; // Will be initialized after canvas setup
     }
 
     /**
@@ -124,13 +117,10 @@ export class DisplayManager {
         // Handle resize
         window.addEventListener('resize', this.handleResize.bind(this));
 
-        // Add event listeners for heading selection
-        this.canvas.addEventListener('mousedown', this.handleMouseDown);
-        this.canvas.addEventListener('mousemove', this.handleMouseMove);
-        this.canvas.addEventListener('mouseup', this.handleMouseUp);
-        this.canvas.addEventListener('touchstart', this.handleTouchStart);
-        this.canvas.addEventListener('touchmove', this.handleTouchMove);
-        this.canvas.addEventListener('touchend', this.handleTouchEnd);
+        // Initialize compass controller
+        this.compassController = new CompassController(this.canvas, (rotationDelta) => {
+            this.onHeadingChange(rotationDelta);
+        });
     }
 
     /**
@@ -167,11 +157,6 @@ export class DisplayManager {
      * Main draw function
      */
     draw() {
-        if (!this.ctx) return;
-
-        // Update theme colors on each draw to ensure consistency
-        this.updateThemeColors();
-
         // Clear canvas
         this.ctx.fillStyle = this.settings.backgroundColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -179,22 +164,18 @@ export class DisplayManager {
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
 
-        if (this.markedPosition) {
-            // Draw grid
-            this.drawGrid(centerX, centerY);
+        // Always draw grid and compass for testing
+        this.drawGrid(centerX, centerY);
+        this.drawCircles(centerX, centerY);
+        this.drawCenterPoint(centerX, centerY);
 
-            // Draw circles
-            this.drawCircles(centerX, centerY);
+        // Draw position dot only if we have both marked and current positions
+        if (this.markedPosition && this.currentPosition) {
+            this.drawPositionDot(centerX, centerY);
+        }
 
-            // Draw center point
-            this.drawCenterPoint(centerX, centerY);
-
-            // Draw current position dot
-            if (this.currentPosition) {
-                this.drawPositionDot(centerX, centerY);
-            }
-        } else {
-            // Draw instructions when no position is marked
+        // Show instructions if no position is marked
+        if (!this.markedPosition) {
             this.drawInstructions();
         }
     }
@@ -298,9 +279,14 @@ export class DisplayManager {
         const offsetX = deltaLon * metersPerDegreeLon;
         const offsetY = -deltaLat * metersPerDegreeLat; // Negative because canvas Y increases downward
 
+        // Rotate coordinates based on selected heading
+        const headingRad = this.selectedHeading * Math.PI / 180;
+        const rotatedX = offsetX * Math.cos(headingRad) - offsetY * Math.sin(headingRad);
+        const rotatedY = offsetX * Math.sin(headingRad) + offsetY * Math.cos(headingRad);
+
         // Convert to pixels
-        const pixelX = centerX + (offsetX * this.pixelsPerMeter);
-        const pixelY = centerY + (offsetY * this.pixelsPerMeter);
+        const pixelX = centerX + (rotatedX * this.pixelsPerMeter);
+        const pixelY = centerY + (rotatedY * this.pixelsPerMeter);
 
         // Draw position dot with pulsing effect
         const time = Date.now() * 0.003;
@@ -349,164 +335,75 @@ export class DisplayManager {
         this.ctx.arc(centerX, centerY, this.compassRadius, 0, 2 * Math.PI);
         this.ctx.stroke();
 
-        // Draw HDG label at top (EHSI style)
-        this.ctx.fillStyle = this.settings.labelColor;
-        this.ctx.font = 'bold 14px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('HDG', centerX, centerY - this.compassRadius - 40);
-
-        // Draw N/S/E/W labels on the outer ring
-        this.ctx.fillStyle = this.settings.labelColor;
+        // Draw HDG value at top with prefix
+        this.ctx.fillStyle = this.settings.headingColor;
         this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(`HDG: ${Math.round(this.selectedHeading)}°`, centerX, centerY - this.compassRadius - 30);
 
-        const labelRadius = this.compassRadius + 25;
-        this.ctx.fillText('N', centerX, centerY - labelRadius);
-        this.ctx.fillText('S', centerX, centerY + labelRadius);
-        this.ctx.fillText('E', centerX + labelRadius, centerY);
-        this.ctx.fillText('W', centerX - labelRadius, centerY);
-
-        // Draw heading indicator line
-        const headingRadians = (this.selectedHeading - 90) * Math.PI / 180; // -90 to make 0° point north
-        const innerRadius = this.compassRadius - 15;
-        const outerRadius = this.compassRadius + 15;
-
-        const innerX = centerX + Math.cos(headingRadians) * innerRadius;
-        const innerY = centerY + Math.sin(headingRadians) * innerRadius;
-        const outerX = centerX + Math.cos(headingRadians) * outerRadius;
-        const outerY = centerY + Math.sin(headingRadians) * outerRadius;
-
-        this.ctx.strokeStyle = this.settings.headingColor;
-        this.ctx.lineWidth = 4;
-        this.ctx.beginPath();
-        this.ctx.moveTo(innerX, innerY);
-        this.ctx.lineTo(outerX, outerY);
-        this.ctx.stroke();
-
-        // Draw current heading value below compass
-        this.ctx.fillStyle = this.settings.headingColor;
+        // Draw N/S/E/W labels that rotate with compass heading
+        this.ctx.fillStyle = '#FFFFFF'; // Force white for visibility
+        this.ctx.strokeStyle = '#000000'; // Black outline for contrast
+        this.ctx.lineWidth = 3;
         this.ctx.font = 'bold 20px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(`${Math.round(this.selectedHeading)}°`, centerX, centerY + this.compassRadius + 60);
+
+        const labelRadius = this.compassRadius + 12;
+
+        // Calculate positions for N/S/E/W based on current heading
+        // North is at (selectedHeading - 90) degrees from screen coordinates
+        const headingOffset = -this.selectedHeading * Math.PI / 180; // Convert to radians and invert
+
+        // North position (always points to true north relative to heading)
+        const northAngle = headingOffset - Math.PI / 2; // -90 degrees from heading
+        const northX = centerX + Math.cos(northAngle) * labelRadius;
+        const northY = centerY + Math.sin(northAngle) * labelRadius;
+        this.ctx.strokeText('N', northX, northY);
+        this.ctx.fillText('N', northX, northY);
+
+        // South position (opposite of north)
+        const southAngle = northAngle + Math.PI; // +180 degrees from north
+        const southX = centerX + Math.cos(southAngle) * labelRadius;
+        const southY = centerY + Math.sin(southAngle) * labelRadius;
+        this.ctx.strokeText('S', southX, southY);
+        this.ctx.fillText('S', southX, southY);
+
+        // East position (90 degrees clockwise from north)
+        const eastAngle = northAngle + Math.PI / 2; // +90 degrees from north
+        const eastX = centerX + Math.cos(eastAngle) * labelRadius;
+        const eastY = centerY + Math.sin(eastAngle) * labelRadius;
+        this.ctx.strokeText('E', eastX, eastY);
+        this.ctx.fillText('E', eastX, eastY);
+
+        // West position (90 degrees counter-clockwise from north)
+        const westAngle = northAngle - Math.PI / 2; // -90 degrees from north
+        const westX = centerX + Math.cos(westAngle) * labelRadius;
+        const westY = centerY + Math.sin(westAngle) * labelRadius;
+        this.ctx.strokeText('W', westX, westY);
+        this.ctx.fillText('W', westX, westY);
     }
 
     /**
-     * Handle mouse down event
+     * Handle heading change from compass controller
      */
-    handleMouseDown(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-
-        // Allow dragging if clicking anywhere within the compass area
-        // Use dynamic compass radius (5m circle) plus buffer
-        const hitRadius = this.compassRadius || (this.settings.circleCount * this.settings.circleScale * this.pixelsPerMeter);
-        if (distance <= hitRadius + 30) {
-            this.isDragging = true;
-            // Immediately update heading on mouse down
-            this.updateHeadingFromPosition(x, y);
-            event.preventDefault();
-        }
+    onHeadingChange(rotationDelta) {
+        this.selectedHeading = (this.selectedHeading + rotationDelta + 360) % 360;
     }
 
     /**
-     * Handle mouse move event
+     * Get selected heading
      */
-    handleMouseMove(event) {
-        if (!this.isDragging) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
-
-        this.selectedHeading = (angle + 360) % 360;
+    getSelectedHeading() {
+        return this.selectedHeading;
     }
 
     /**
-     * Handle mouse up event
+     * Set selected heading
      */
-    handleMouseUp() {
-        this.isDragging = false;
-    }
-
-    /**
-     * Handle touch start event
-     */
-    handleTouchStart(event) {
-        const rect = this.canvas.getBoundingClientRect();
-        const touch = event.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-
-        // Allow dragging if touching anywhere within the compass area
-        // Use dynamic compass radius (5m circle) plus buffer
-        const hitRadius = this.compassRadius || (this.settings.circleCount * this.settings.circleScale * this.pixelsPerMeter);
-        if (distance <= hitRadius + 30) {
-            this.isDragging = true;
-            // Immediately update heading on touch start
-            this.updateHeadingFromPosition(x, y);
-            event.preventDefault();
-        }
-    }
-
-    /**
-     * Handle touch move event
-     */
-    handleTouchMove(event) {
-        if (!this.isDragging) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const touch = event.touches[0];
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        const angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
-
-        this.selectedHeading = (angle + 360) % 360;
-    }
-
-    /**
-     * Handle touch end event
-     */
-    handleTouchEnd(event) {
-        this.isDragging = false;
-        event.preventDefault();
-    }
-
-    /**
-     * Update heading from screen position
-     */
-    updateHeadingFromPosition(x, y) {
-        const centerX = this.canvas.width / 2;
-        const centerY = this.canvas.height / 2;
-
-        // Calculate angle from center, with 0° pointing north
-        let angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
-        // Convert to compass heading (0° = North, 90° = East, etc.)
-        angle = (angle + 90 + 360) % 360;
-
-        this.selectedHeading = Math.round(angle);
+    setSelectedHeading(heading) {
+        this.selectedHeading = (heading + 360) % 360;
     }
 
     /**
@@ -583,6 +480,11 @@ export class DisplayManager {
      */
     destroy() {
         this.stopAnimation();
+
+        if (this.compassController) {
+            this.compassController.destroy();
+            this.compassController = null;
+        }
 
         if (this.canvas) {
             window.removeEventListener('resize', this.handleResize.bind(this));
