@@ -50,6 +50,7 @@ export class DisplayManager {
             this.ctx = this.canvas.getContext('2d');
             this.setupCanvas();
             this.updateThemeColors(); // Set initial theme colors
+            this.updateHeadingDisplay(); // Initialize heading display
             this.startAnimation();
 
             this.isInitialized = true;
@@ -280,7 +281,7 @@ export class DisplayManager {
         const offsetY = -deltaLat * metersPerDegreeLat; // Negative because canvas Y increases downward
 
         // Rotate coordinates based on selected heading (negative to rotate world opposite to compass)
-        const headingRad = -this.selectedHeading * Math.PI / 180;
+        const headingRad = -this.selectedHeading * Math.PI / 180; // Convert to radians and invert
         const rotatedX = offsetX * Math.cos(headingRad) - offsetY * Math.sin(headingRad);
         const rotatedY = offsetX * Math.sin(headingRad) + offsetY * Math.cos(headingRad);
 
@@ -292,10 +293,15 @@ export class DisplayManager {
         const time = Date.now() * 0.003;
         const pulseSize = this.settings.dotSize + Math.sin(time) * 2;
 
+        // Get color based on GPS accuracy
+        const dotColor = this.currentPosition.accuracy ?
+            this.getAccuracyColor(this.currentPosition.accuracy) :
+            this.settings.dotColor;
+
         // Draw outer glow
-        this.ctx.shadowColor = this.settings.dotColor;
+        this.ctx.shadowColor = dotColor;
         this.ctx.shadowBlur = 15;
-        this.ctx.fillStyle = this.settings.dotColor;
+        this.ctx.fillStyle = dotColor;
         this.ctx.beginPath();
         this.ctx.arc(pixelX, pixelY, pulseSize, 0, 2 * Math.PI);
         this.ctx.fill();
@@ -334,13 +340,6 @@ export class DisplayManager {
         this.ctx.beginPath();
         this.ctx.arc(centerX, centerY, this.compassRadius, 0, 2 * Math.PI);
         this.ctx.stroke();
-
-        // Draw HDG value at top with prefix
-        this.ctx.fillStyle = this.settings.headingColor;
-        this.ctx.font = 'bold 18px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(`HDG: ${Math.round(this.selectedHeading)}°`, centerX, centerY - this.compassRadius - 30);
 
         // Draw N/S/E/W labels that rotate with compass heading
         this.ctx.fillStyle = '#FFFFFF'; // Force white for visibility
@@ -390,6 +389,17 @@ export class DisplayManager {
      */
     onHeadingChange(rotationDelta) {
         this.selectedHeading = (this.selectedHeading + rotationDelta + 360) % 360;
+        this.updateHeadingDisplay();
+    }
+
+    /**
+     * Update the heading display in the coordinates panel
+     */
+    updateHeadingDisplay() {
+        const headingElement = document.getElementById('heading-value');
+        if (headingElement) {
+            headingElement.textContent = `${Math.round(this.selectedHeading)}°`;
+        }
     }
 
     /**
@@ -404,6 +414,7 @@ export class DisplayManager {
      */
     setSelectedHeading(heading) {
         this.selectedHeading = (heading + 360) % 360;
+        this.updateHeadingDisplay();
     }
 
     /**
@@ -473,6 +484,17 @@ export class DisplayManager {
             x: centerX + (meterX * this.pixelsPerMeter),
             y: centerY - (meterY * this.pixelsPerMeter) // Flip Y axis
         };
+    }
+
+    /**
+     * Get color based on GPS accuracy
+     * @param {number} accuracy - GPS accuracy in meters
+     * @returns {string} - Color hex code
+     */
+    getAccuracyColor(accuracy) {
+        if (accuracy < 5) return '#2196F3'; // Blue for excellent accuracy
+        if (accuracy < 10) return '#FF9800'; // Orange for good accuracy
+        return '#FF5722'; // Red for poor accuracy
     }
 
     /**

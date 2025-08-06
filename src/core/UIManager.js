@@ -100,6 +100,17 @@ export class UIManager {
     }
 
     /**
+     * Get CSS color class based on GPS accuracy
+     * @param {number} accuracy - GPS accuracy in meters
+     * @returns {string} - CSS class name
+     */
+    getAccuracyColorClass(accuracy) {
+        if (accuracy < 5) return 'accuracy-excellent'; // Blue for excellent accuracy
+        if (accuracy < 10) return 'accuracy-good'; // Orange for good accuracy
+        return 'accuracy-poor'; // Red for poor accuracy
+    }
+
+    /**
      * Update GPS status indicator
      */
     updateGPSStatus(status, accuracy = null) {
@@ -108,6 +119,7 @@ export class UIManager {
 
         // Remove existing status classes
         statusElement.classList.remove('connected', 'error');
+        accuracyElement.classList.remove('connected', 'error', 'accuracy-excellent', 'accuracy-good', 'accuracy-poor');
 
         switch (status) {
             case 'connected':
@@ -117,20 +129,20 @@ export class UIManager {
                     accuracyElement.textContent = `Accuracy: ${Math.round(accuracy)}m`;
                     accuracyElement.classList.remove('error');
                     accuracyElement.classList.add('connected');
+                    // Add accuracy-based color class
+                    accuracyElement.classList.add(this.getAccuracyColorClass(accuracy));
                 }
                 break;
 
             case 'disconnected':
                 statusElement.textContent = 'GPS: Disconnected';
                 accuracyElement.textContent = 'Accuracy: --';
-                accuracyElement.classList.remove('connected', 'error');
                 break;
 
             case 'error':
                 statusElement.textContent = 'GPS: Error';
                 statusElement.classList.add('error');
                 accuracyElement.textContent = 'Accuracy: Error';
-                accuracyElement.classList.remove('connected');
                 accuracyElement.classList.add('error');
                 break;
         }

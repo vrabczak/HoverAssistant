@@ -177,7 +177,7 @@ export class HoverAssistant {
 
         if (this.markedPosition) {
             const distance = this.calculateDistance(this.markedPosition, position);
-            const bearing = this.calculateBearing(this.markedPosition, position);
+            const bearing = this.calculateBearing(position, this.markedPosition);
 
             // Update display
             this.displayManager.updatePosition(this.markedPosition, position);

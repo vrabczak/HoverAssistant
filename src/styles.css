@@ -334,6 +334,22 @@ body {
     color: #f44336;
 }
 
+/* GPS Accuracy Color Classes */
+.status-indicator.accuracy-excellent {
+    background: rgba(33, 150, 243, 0.3);
+    color: #2196F3;
+}
+
+.status-indicator.accuracy-good {
+    background: rgba(255, 152, 0, 0.3);
+    color: #FF9800;
+}
+
+.status-indicator.accuracy-poor {
+    background: rgba(255, 87, 34, 0.3);
+    color: #FF5722;
+}
+
 /* Light theme specific adjustments */
 .light-theme .modal {
     background: rgba(255, 255, 255, 0.8);
