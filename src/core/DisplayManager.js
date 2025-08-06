@@ -193,9 +193,6 @@ export class DisplayManager {
             if (this.currentPosition) {
                 this.drawPositionDot(centerX, centerY);
             }
-
-            // Draw compass ring
-            this.drawCompassRing(centerX, centerY);
         } else {
             // Draw instructions when no position is marked
             this.drawInstructions();
@@ -235,14 +232,15 @@ export class DisplayManager {
     }
 
     /**
-     * Draw concentric circles (1 meter diameter increments, 5 circles)
+     * Draw concentric circles (1 meter diameter increments, 4 circles + compass)
      */
     drawCircles(centerX, centerY) {
         this.ctx.strokeStyle = this.settings.circleColor;
         this.ctx.lineWidth = 2;
         this.ctx.globalAlpha = 0.8;
 
-        for (let i = 1; i <= this.settings.circleCount; i++) {
+        // Draw inner circles (1m to 4m)
+        for (let i = 1; i < this.settings.circleCount; i++) {
             const radius = i * this.settings.circleScale * this.pixelsPerMeter;
 
             this.ctx.beginPath();
@@ -257,6 +255,10 @@ export class DisplayManager {
         }
 
         this.ctx.globalAlpha = 1;
+
+        // Draw compass ring at 5m radius
+        this.compassRadius = this.settings.circleCount * this.settings.circleScale * this.pixelsPerMeter;
+        this.drawCompassRing(centerX, centerY);
     }
 
     /**
@@ -404,8 +406,14 @@ export class DisplayManager {
 
         const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
 
-        if (distance <= this.compassRadius + this.compassRingWidth / 2) {
+        // Allow dragging if clicking anywhere within the compass area
+        // Use dynamic compass radius (5m circle) plus buffer
+        const hitRadius = this.compassRadius || (this.settings.circleCount * this.settings.circleScale * this.pixelsPerMeter);
+        if (distance <= hitRadius + 30) {
             this.isDragging = true;
+            // Immediately update heading on mouse down
+            this.updateHeadingFromPosition(x, y);
+            event.preventDefault();
         }
     }
 
@@ -439,16 +447,23 @@ export class DisplayManager {
      */
     handleTouchStart(event) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = event.touches[0].clientX - rect.left;
-        const y = event.touches[0].clientY - rect.top;
+        const touch = event.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
 
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
 
         const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
 
-        if (distance <= this.compassRadius + this.compassRingWidth / 2) {
+        // Allow dragging if touching anywhere within the compass area
+        // Use dynamic compass radius (5m circle) plus buffer
+        const hitRadius = this.compassRadius || (this.settings.circleCount * this.settings.circleScale * this.pixelsPerMeter);
+        if (distance <= hitRadius + 30) {
             this.isDragging = true;
+            // Immediately update heading on touch start
+            this.updateHeadingFromPosition(x, y);
+            event.preventDefault();
         }
     }
 
@@ -459,8 +474,9 @@ export class DisplayManager {
         if (!this.isDragging) return;
 
         const rect = this.canvas.getBoundingClientRect();
-        const x = event.touches[0].clientX - rect.left;
-        const y = event.touches[0].clientY - rect.top;
+        const touch = event.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
 
         const centerX = this.canvas.width / 2;
         const centerY = this.canvas.height / 2;
