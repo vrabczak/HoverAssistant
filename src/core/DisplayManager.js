@@ -279,8 +279,8 @@ export class DisplayManager {
         const offsetX = deltaLon * metersPerDegreeLon;
         const offsetY = -deltaLat * metersPerDegreeLat; // Negative because canvas Y increases downward
 
-        // Rotate coordinates based on selected heading
-        const headingRad = this.selectedHeading * Math.PI / 180;
+        // Rotate coordinates based on selected heading (negative to rotate world opposite to compass)
+        const headingRad = -this.selectedHeading * Math.PI / 180;
         const rotatedX = offsetX * Math.cos(headingRad) - offsetY * Math.sin(headingRad);
         const rotatedY = offsetX * Math.sin(headingRad) + offsetY * Math.cos(headingRad);
 

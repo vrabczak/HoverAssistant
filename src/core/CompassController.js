@@ -14,7 +14,7 @@ export class CompassController {
         this.centerY = 0;
 
         // Sensitivity for rotation (degrees per pixel of movement)
-        this.sensitivity = 0.67; // Reduced from 2 to make rotation 3x slower
+        this.sensitivity = 0.2; // Reduced from 2 to make rotation 3x slower
 
         // Bind event handlers
         this.handleMouseDown = this.handleMouseDown.bind(this);
