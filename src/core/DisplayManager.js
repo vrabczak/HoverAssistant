@@ -489,8 +489,24 @@ export class DisplayManager {
     /**
      * Handle touch end event
      */
-    handleTouchEnd() {
+    handleTouchEnd(event) {
         this.isDragging = false;
+        event.preventDefault();
+    }
+
+    /**
+     * Update heading from screen position
+     */
+    updateHeadingFromPosition(x, y) {
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        // Calculate angle from center, with 0° pointing north
+        let angle = Math.atan2(y - centerY, x - centerX) * 180 / Math.PI;
+        // Convert to compass heading (0° = North, 90° = East, etc.)
+        angle = (angle + 90 + 360) % 360;
+
+        this.selectedHeading = Math.round(angle);
     }
 
     /**
