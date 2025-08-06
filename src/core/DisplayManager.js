@@ -97,7 +97,7 @@ export class DisplayManager {
 
         // Calculate pixels per meter based on canvas size
         const minDimension = Math.min(this.canvas.width, this.canvas.height);
-        this.pixelsPerMeter = (minDimension * 0.8) / (this.settings.gridSize * 2);
+        this.pixelsPerMeter = (minDimension * 0.9) / (this.settings.gridSize * 2);
 
         // Setup canvas properties
         this.ctx.imageSmoothingEnabled = true;
@@ -215,7 +215,7 @@ export class DisplayManager {
         this.ctx.globalAlpha = 0.8;
 
         for (let i = 1; i <= this.settings.circleCount; i++) {
-            const radius = i * this.settings.circleScale * this.pixelsPerMeter / 2; // diameter to radius
+            const radius = i * this.settings.circleScale * this.pixelsPerMeter;
 
             this.ctx.beginPath();
             this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);

@@ -94,7 +94,35 @@ class App {
                 // Listen for updates
                 registration.addEventListener('updatefound', () => {
                     console.log('Service Worker update found');
+                    const newWorker = registration.installing;
+
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New service worker is installed and ready
+                                this.showUpdateNotification();
+                            }
+                        });
+                    }
                 });
+
+                // Listen for messages from service worker
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    if (event.data && event.data.type === 'UPDATE_AVAILABLE') {
+                        this.showUpdateNotification(event.data.message);
+                    }
+                });
+
+                // Check for updates manually
+                if (registration.waiting) {
+                    this.showUpdateNotification();
+                }
+
+                // Check for updates periodically
+                setInterval(() => {
+                    registration.update();
+                }, 5 * 60 * 1000); // Check every 5 minutes
+
             } catch (error) {
                 console.log('Service Worker registration failed:', error);
             }
@@ -164,6 +192,112 @@ class App {
                 ">Retry</button>
             </div>
         `;
+    }
+
+    /**
+     * Show update notification to user
+     */
+    showUpdateNotification(message = 'A new version is available!') {
+        // Create update notification
+        const notification = document.createElement('div');
+        notification.id = 'update-notification';
+        notification.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 16px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-family: Arial, sans-serif;
+                max-width: 300px;
+                animation: slideIn 0.3s ease-out;
+            ">
+                <div style="margin-bottom: 10px; font-weight: bold;">
+                    📱 Update Available
+                </div>
+                <div style="margin-bottom: 15px; font-size: 14px;">
+                    ${message}
+                </div>
+                <div>
+                    <button id="update-now" style="
+                        background: white;
+                        color: #4CAF50;
+                        border: none;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-weight: bold;
+                        margin-right: 8px;
+                    ">Update Now</button>
+                    <button id="update-later" style="
+                        background: transparent;
+                        color: white;
+                        border: 1px solid white;
+                        padding: 8px 16px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">Later</button>
+                </div>
+            </div>
+            <style>
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            </style>
+        `;
+
+        // Remove existing notification if any
+        const existing = document.getElementById('update-notification');
+        if (existing) {
+            existing.remove();
+        }
+
+        document.body.appendChild(notification);
+
+        // Handle update now button
+        document.getElementById('update-now').addEventListener('click', () => {
+            this.applyUpdate();
+            notification.remove();
+        });
+
+        // Handle later button
+        document.getElementById('update-later').addEventListener('click', () => {
+            notification.remove();
+        });
+
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            if (document.getElementById('update-notification')) {
+                notification.remove();
+            }
+        }, 10000);
+    }
+
+    /**
+     * Apply the service worker update
+     */
+    async applyUpdate() {
+        if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration && registration.waiting) {
+                // Tell the waiting service worker to skip waiting
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+                // Reload the page to get the new version
+                window.location.reload();
+            } else {
+                // Force check for updates
+                if (registration) {
+                    await registration.update();
+                }
+                window.location.reload();
+            }
+        }
     }
 
     /**
