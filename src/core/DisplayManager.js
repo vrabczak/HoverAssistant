@@ -340,28 +340,55 @@ export class DisplayManager {
      * Draw compass ring
      */
     drawCompassRing(centerX, centerY) {
+        // Draw outer compass ring
         this.ctx.strokeStyle = this.settings.compassColor;
-        this.ctx.lineWidth = this.compassRingWidth;
+        this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.arc(centerX, centerY, this.compassRadius, 0, 2 * Math.PI);
         this.ctx.stroke();
 
-        // Draw N/S/E/W labels
+        // Draw HDG label at top (EHSI style)
         this.ctx.fillStyle = this.settings.labelColor;
-        this.ctx.font = '14px Arial';
+        this.ctx.font = 'bold 14px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('N', centerX, centerY - this.compassRadius - 10);
-        this.ctx.fillText('S', centerX, centerY + this.compassRadius + 20);
-        this.ctx.fillText('E', centerX + this.compassRadius + 10, centerY);
-        this.ctx.fillText('W', centerX - this.compassRadius - 20, centerY);
+        this.ctx.fillText('HDG', centerX, centerY - this.compassRadius - 40);
 
-        // Draw current heading
-        this.ctx.fillStyle = this.settings.headingColor;
-        this.ctx.font = '18px Arial';
+        // Draw N/S/E/W labels on the outer ring
+        this.ctx.fillStyle = this.settings.labelColor;
+        this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(`${this.selectedHeading}°`, centerX, centerY + this.compassRadius + 40);
+
+        const labelRadius = this.compassRadius + 25;
+        this.ctx.fillText('N', centerX, centerY - labelRadius);
+        this.ctx.fillText('S', centerX, centerY + labelRadius);
+        this.ctx.fillText('E', centerX + labelRadius, centerY);
+        this.ctx.fillText('W', centerX - labelRadius, centerY);
+
+        // Draw heading indicator line
+        const headingRadians = (this.selectedHeading - 90) * Math.PI / 180; // -90 to make 0° point north
+        const innerRadius = this.compassRadius - 15;
+        const outerRadius = this.compassRadius + 15;
+
+        const innerX = centerX + Math.cos(headingRadians) * innerRadius;
+        const innerY = centerY + Math.sin(headingRadians) * innerRadius;
+        const outerX = centerX + Math.cos(headingRadians) * outerRadius;
+        const outerY = centerY + Math.sin(headingRadians) * outerRadius;
+
+        this.ctx.strokeStyle = this.settings.headingColor;
+        this.ctx.lineWidth = 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(innerX, innerY);
+        this.ctx.lineTo(outerX, outerY);
+        this.ctx.stroke();
+
+        // Draw current heading value below compass
+        this.ctx.fillStyle = this.settings.headingColor;
+        this.ctx.font = 'bold 20px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(`${Math.round(this.selectedHeading)}°`, centerX, centerY + this.compassRadius + 60);
     }
 
     /**
