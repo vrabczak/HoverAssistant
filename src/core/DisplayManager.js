@@ -102,12 +102,21 @@ export class DisplayManager {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
 
-        // Set canvas size to match container
-        this.canvas.width = rect.width;
-        this.canvas.height = rect.height;
+        // Calculate the size for a square canvas that fits within the container
+        const availableWidth = rect.width;
+        const availableHeight = rect.height;
+        const canvasSize = Math.min(availableWidth, availableHeight);
+
+        // Set canvas size to be square
+        this.canvas.width = canvasSize;
+        this.canvas.height = canvasSize;
+
+        // Set CSS size to match canvas dimensions for proper scaling
+        this.canvas.style.width = `${canvasSize}px`;
+        this.canvas.style.height = `${canvasSize}px`;
 
         // Calculate pixels per meter based on canvas size
-        const minDimension = Math.min(this.canvas.width, this.canvas.height);
+        const minDimension = canvasSize;
         this.pixelsPerMeter = (minDimension * 0.9) / (this.settings.gridSize * 2);
 
         // Setup canvas properties
