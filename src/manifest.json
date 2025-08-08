@@ -16,35 +16,15 @@
             "purpose": "any"
         },
         {
-            "src": "/HoverAssistant/icons/icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
-        },
-        {
             "src": "/HoverAssistant/icons/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
-        },
-        {
-            "src": "/HoverAssistant/icons/icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
         }
     ],
     "categories": [
         "navigation",
         "utilities"
-    ],
-    "screenshots": [
-        {
-            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjU2OCIgdmlld0JveD0iMCAwIDMyMCA1NjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iNTY4IiBmaWxsPSIjMWExYTFhIi8+CjxjaXJjbGUgY3g9IjE2MCIgY3k9IjI4NCIgcj0iMTAwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjgwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjYwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjQwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjIwIiBzdHJva2U9IiMwMGZmMDAiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSIyODQiIHI9IjQiIGZpbGw9IiMwMGZmMDAiLz4KPC9zdmc+Cg==",
-            "sizes": "320x568",
-            "type": "image/svg+xml",
-            "form_factor": "narrow"
-        }
     ],
     "permissions": [
         "geolocation"
