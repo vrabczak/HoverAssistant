@@ -38,6 +38,7 @@ module.exports = {
       apply: (compiler) => {
         compiler.hooks.emit.tapAsync('CopyPWAFiles', (compilation, callback) => {
           const fs = require('fs');
+          const path = require('path');
 
           // Copy manifest.json
           try {
@@ -59,6 +60,27 @@ module.exports = {
             };
           } catch (error) {
             console.warn('Could not copy sw.js:', error.message);
+          }
+
+          // Create icons directory and copy PNG icons
+          try {
+            // Copy 192x192 icon
+            const icon192Buffer = fs.readFileSync('./src/images/PWA-192.png');
+            compilation.assets['icons/icon-192.png'] = {
+              source: () => icon192Buffer,
+              size: () => icon192Buffer.length
+            };
+
+            // Copy 512x512 icon
+            const icon512Buffer = fs.readFileSync('./src/images/PWA-512.png');
+            compilation.assets['icons/icon-512.png'] = {
+              source: () => icon512Buffer,
+              size: () => icon512Buffer.length
+            };
+
+            console.log('PWA icons copied successfully');
+          } catch (error) {
+            console.warn('Could not copy PWA icons:', error.message);
           }
 
           callback();

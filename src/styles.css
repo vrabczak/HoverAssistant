@@ -447,7 +447,7 @@ body {
 /* Ensure coordinates are always visible on very small screens */
 @media (max-height: 600px) {
     .main-content {
-        gap: 10px;
+        gap: 5px;
     }
 
     .hover-canvas {
@@ -468,7 +468,7 @@ body {
 @media (max-width: 320px) {
     .status-bar {
         flex-direction: column;
-        gap: 6px;
+        gap: 3px;
         align-items: stretch;
     }
 
