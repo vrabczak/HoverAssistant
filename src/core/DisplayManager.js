@@ -278,25 +278,21 @@ export class DisplayManager {
     drawPositionDot(centerX, centerY) {
         if (!this.markedPosition || !this.currentPosition) return;
 
-        // Calculate offset from marked position
-        const deltaLat = this.currentPosition.latitude - this.markedPosition.latitude;
-        const deltaLon = this.currentPosition.longitude - this.markedPosition.longitude;
+        // Use Haversine-based coordinate conversion for improved accuracy
+        const localCoords = this.gpsToLocalCoordinates(this.markedPosition, this.currentPosition);
 
-        // Convert to meters (approximate)
-        const metersPerDegreeLat = 111320;
-        const metersPerDegreeLon = 111320 * Math.cos(this.markedPosition.latitude * Math.PI / 180);
-
-        const offsetX = deltaLon * metersPerDegreeLon;
-        const offsetY = -deltaLat * metersPerDegreeLat; // Negative because canvas Y increases downward
+        // Apply coordinate system transformation: East=X, North=Y
+        let offsetX = localCoords.x;  // East offset in meters
+        let offsetY = localCoords.y;  // North offset in meters
 
         // Rotate coordinates based on selected heading (negative to rotate world opposite to compass)
         const headingRad = -this.selectedHeading * Math.PI / 180; // Convert to radians and invert
         const rotatedX = offsetX * Math.cos(headingRad) - offsetY * Math.sin(headingRad);
         const rotatedY = offsetX * Math.sin(headingRad) + offsetY * Math.cos(headingRad);
 
-        // Convert to pixels
+        // Convert to pixels (note: canvas Y increases downward, so we negate Y)
         const pixelX = centerX + (rotatedX * this.pixelsPerMeter);
-        const pixelY = centerY + (rotatedY * this.pixelsPerMeter);
+        const pixelY = centerY - (rotatedY * this.pixelsPerMeter); // Negative for canvas coordinate system
 
         // Draw position dot with pulsing effect
         const time = Date.now() * 0.003;
@@ -504,6 +500,124 @@ export class DisplayManager {
         if (accuracy < 5) return '#2196F3'; // Blue for excellent accuracy
         if (accuracy < 10) return '#FF9800'; // Orange for good accuracy
         return '#FF5722'; // Red for poor accuracy
+    }
+
+    /**
+     * Calculate distance between two GPS coordinates using Haversine formula
+     * @param {number} lat1 - First latitude in decimal degrees
+     * @param {number} lon1 - First longitude in decimal degrees
+     * @param {number} lat2 - Second latitude in decimal degrees
+     * @param {number} lon2 - Second longitude in decimal degrees
+     * @returns {number} Distance in meters
+     */
+    haversineDistance(lat1, lon1, lat2, lon2) {
+        // Use WGS84 Earth radius for better accuracy
+        const R = 6378137.0; // WGS84 equatorial radius in meters
+
+        // Convert to radians with higher precision
+        const φ1 = lat1 * (Math.PI / 180.0);
+        const φ2 = lat2 * (Math.PI / 180.0);
+        const Δφ = (lat2 - lat1) * (Math.PI / 180.0);
+        const Δλ = (lon2 - lon1) * (Math.PI / 180.0);
+
+        // For very small distances, use linear approximation to avoid precision loss
+        if (Math.abs(Δφ) < 1e-8 && Math.abs(Δλ) < 1e-8) {
+            // Linear approximation for distances < ~1 meter
+            const avgLat = (φ1 + φ2) / 2.0;
+            const x = Δλ * Math.cos(avgLat);
+            const y = Δφ;
+            return R * Math.sqrt(x * x + y * y);
+        }
+
+        // Standard Haversine for larger distances
+        const a = Math.sin(Δφ / 2.0) * Math.sin(Δφ / 2.0) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2.0) * Math.sin(Δλ / 2.0);
+        const c = 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+
+        return R * c;
+    }
+
+    /**
+     * Calculate bearing between two GPS coordinates
+     * @param {number} lat1 - First latitude in decimal degrees
+     * @param {number} lon1 - First longitude in decimal degrees
+     * @param {number} lat2 - Second latitude in decimal degrees
+     * @param {number} lon2 - Second longitude in decimal degrees
+     * @returns {number} Bearing in degrees (0-360, where 0 is North)
+     */
+    calculateBearing(lat1, lon1, lat2, lon2) {
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const y = Math.sin(Δλ) * Math.cos(φ2);
+        const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+
+        const bearing = Math.atan2(y, x) * 180 / Math.PI;
+        return (bearing + 360) % 360; // Normalize to 0-360 degrees
+    }
+
+    /**
+     * Convert GPS coordinates to local Cartesian coordinates (East/North offsets)
+     * Uses Local Tangent Plane (LTP) projection for improved accuracy at short distances
+     * @param {Object} referencePos - Reference position {latitude, longitude}
+     * @param {Object} currentPos - Current position {latitude, longitude}
+     * @returns {Object} Local coordinates {x: eastOffset, y: northOffset} in meters
+     */
+    gpsToLocalCoordinates(referencePos, currentPos) {
+        // Use WGS84 parameters for higher accuracy
+        const a = 6378137.0; // WGS84 semi-major axis (equatorial radius)
+        const f = 1.0 / 298.257223563; // WGS84 flattening
+        const e2 = 2.0 * f - f * f; // First eccentricity squared
+
+        // Convert to radians with explicit precision
+        const φ0 = referencePos.latitude * (Math.PI / 180.0); // Reference latitude
+        const λ0 = referencePos.longitude * (Math.PI / 180.0); // Reference longitude
+        const φ = currentPos.latitude * (Math.PI / 180.0); // Current latitude
+        const λ = currentPos.longitude * (Math.PI / 180.0); // Current longitude
+
+        // Calculate differences
+        const Δφ = φ - φ0;
+        const Δλ = λ - λ0;
+
+        // For very small distances (< 100m), use simplified local tangent plane
+        if (Math.abs(Δφ) < 0.001 && Math.abs(Δλ) < 0.001) {
+            // Radius of curvature in the meridian
+            const M = a * (1.0 - e2) / Math.pow(1.0 - e2 * Math.sin(φ0) * Math.sin(φ0), 1.5);
+
+            // Radius of curvature in the prime vertical
+            const N = a / Math.sqrt(1.0 - e2 * Math.sin(φ0) * Math.sin(φ0));
+
+            // Local tangent plane coordinates
+            const northOffset = M * Δφ;
+            const eastOffset = N * Math.cos(φ0) * Δλ;
+
+            return {
+                x: eastOffset,  // East is positive X
+                y: northOffset // North is positive Y
+            };
+        }
+
+        // For larger distances, fall back to Haversine-based calculation
+        // Calculate East offset using Haversine at reference latitude
+        const eastDistance = this.haversineDistance(
+            referencePos.latitude, referencePos.longitude,
+            referencePos.latitude, currentPos.longitude
+        );
+        const eastOffset = currentPos.longitude > referencePos.longitude ? eastDistance : -eastDistance;
+
+        // Calculate North offset using Haversine
+        const northDistance = this.haversineDistance(
+            referencePos.latitude, referencePos.longitude,
+            currentPos.latitude, referencePos.longitude
+        );
+        const northOffset = currentPos.latitude > referencePos.latitude ? northDistance : -northDistance;
+
+        return {
+            x: eastOffset,  // East is positive X
+            y: northOffset // North is positive Y
+        };
     }
 
     /**
